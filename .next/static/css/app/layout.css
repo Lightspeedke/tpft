@@ -565,9 +565,6 @@ video {
 .flex {
   display: flex;
 }
-.inline-flex {
-  display: inline-flex;
-}
 .h-10 {
   height: 2.5rem;
 }

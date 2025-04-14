@@ -56,13 +56,9 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
     const loadSocialStatus = () => {
       const platforms: SocialPlatform[] = ['telegram', 'twitter'];
       const status: Record<SocialPlatform, boolean> = {
-        telegram: false,
-        twitter: false,
+        telegram: localStorage.getItem(`${'telegram'}_followed_${userAddress}`) === 'true',
+        twitter: localStorage.getItem(`${'twitter'}_followed_${userAddress}`) === 'true',
       };
-
-      platforms.forEach(platform => {
-        status[platform] = localStorage.getItem(`${platform}_followed_${userAddress}`) === 'true';
-      });
 
       setSocialFollowed(status);
     };
@@ -126,7 +122,7 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
       } else if (isClaimActive) {
         checkClaimStatus();
       }
-    }, 50);
+    }, 1000);
 
     return () => clearInterval(intervalId);
   }, [userAddress, countdown]);
@@ -203,17 +199,6 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
     );
   };
 
-  const renderSocialBadge = (platform: SocialPlatform) => {
-    const { name, icon, color } = socialPlatforms[platform];
-    const isFollowed = socialFollowed[platform];
-    return (
-      <div key={platform} style={{ backgroundColor: color, color: 'white', display: 'inline-flex', alignItems: 'center', borderRadius: '8px', padding: '2px 8px', margin: '0 4px' }}>
-        {icon}
-        <span style={{ marginLeft: '4px' }}>{name}</span>
-      </div>
-    );
-  };
-
   return (
     <div className="claim-coin-container">
       <h2>Claim your TPulseFi Tokens</h2>
@@ -222,38 +207,32 @@ export function ClaimCoin({ userAddress }: ClaimCoinProps) {
       </div>
 
       {activeTab === 'claim' && (
-        <div className="claim-section">
-          <h3>Claim Tokens</h3>
-          {!hasClaimed && (
-            <>
-              <div className="social-buttons">
-                {['telegram', 'twitter'].map(platform => renderSocialButtons(platform))}
-              </div>
-              <button
-                className="claim-button"
-                onClick={handleClaim}
-                disabled={isClaiming || !allSocialFollowed || hasClaimed}
-              >
-                {isClaiming
-                  ? 'Processing...'
-                  : hasClaimed
-                  ? 'Already Claimed'
-                  : 'Claim 1,000 TPulseFi Now'}
+        <div className="claim-content">
+          {!hasClaimed ? (
+            <div>
+              {Object.keys(socialPlatforms).map((platform) =>
+                renderSocialButtons(platform as SocialPlatform)
+              )}
+              <button onClick={handleClaim} disabled={isClaiming || !allSocialFollowed} className="claim-btn">
+                {isClaiming ? 'Claiming...' : 'Claim Tokens'}
               </button>
-            </>
-          )}
-
-          {error && <div className="error-message">{error}</div>}
-
-          {claimSuccess && <div className="claim-success-message">Successfully claimed!</div>}
-
-          {countdown && !hasClaimed && (
-            <div className="countdown">
-              Next claim available in {countdown.hours}:{countdown.minutes}:{countdown.seconds}
+            </div>
+          ) : (
+            <div className="claim-status">
+              {countdown ? (
+                <p>
+                  You can claim again in {countdown.hours}:{countdown.minutes}:{countdown.seconds}
+                </p>
+              ) : (
+                <p>Claim Successful!</p>
+              )}
             </div>
           )}
+          {error && <div className="error-message">{error}</div>}
         </div>
       )}
     </div>
   );
 }
+
+export default ClaimCoin;
